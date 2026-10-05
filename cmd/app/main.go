@@ -5,6 +5,7 @@ import (
 	"PETShoP/internal/config"
 	"PETShoP/internal/handlers"
 	"PETShoP/internal/handlers/product"
+	"PETShoP/internal/handlers/user"
 	"PETShoP/internal/lib/logger"
 	"PETShoP/internal/storage/postgres"
 	"log/slog"
@@ -52,12 +53,15 @@ func main() {
 
 	// Handlers
 	productHandler := product.New(log, storage)
+	userHandler := user.New(log, storage)
 	router.Get("/health", handlers.StatusHandler)
 	router.Get("/products", productHandler.GetAllProducts)
 	router.Get("/products/{id}", productHandler.GetProductByID)
 	router.Post("/products", productHandler.CreateProduct)
 	router.Delete("/products/{id}", productHandler.DeleteProduct)
 	router.Put("/products/{id}", productHandler.UpdateProduct)
+	router.Get("/users/{email}", userHandler.GetUserByEmail)
+	router.Post("/users", userHandler.CreateUser)
 
 	// Settings and started server
 	srv := &http.Server{
