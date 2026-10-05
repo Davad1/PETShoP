@@ -27,3 +27,9 @@ type OrderItem struct {
 	ProductID int
 	Quantity  int
 }
+
+type User struct {
+	ID    int
+	Name  string
+	Email string 
+}

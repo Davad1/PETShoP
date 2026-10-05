@@ -16,6 +16,7 @@ import (
 
 type Products interface {
 	GetAllProducts(ctx context.Context) ([]models.Product, error)
+	GetProductByID(ctx context.Context, id int) (models.Product, error)
 	CreateProduct(ctx context.Context, product models.Product) (int, error)
 	DeleteProduct(ctx context.Context, id int) error
 	UpdateProduct(ctx context.Context, product models.Product) error
@@ -57,6 +58,54 @@ func (h *Handler) GetAllProducts(w http.ResponseWriter, r *http.Request) {
 	)
 
 	render.JSON(w, r, items)
+}
+
+func (h *Handler) GetProductByID(w http.ResponseWriter, r *http.Request) {
+	const fn = "handlers.products.GetProductByID"
+	log := h.log.With(
+		slog.String("fn", fn),
+		slog.String("request_id", middleware.GetReqID(r.Context())),
+	)
+
+	idStr := chi.URLParam(r, "id")
+	if idStr == "" {
+		log.Error("empty id")
+		w.WriteHeader(http.StatusBadRequest)
+		render.JSON(w, r, map[string]string{
+			"error":   "Bad request",
+			"message": "Product ID is required",
+		})
+		return
+	}
+
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		log.Error("invalid id format", slog.Any("error", err), slog.String("id", idStr))
+		w.WriteHeader(http.StatusBadRequest)
+		render.JSON(w, r, map[string]string{
+			"error":   "Bad request",
+			"message": "Product ID must be a number",
+		})
+		return
+	}
+
+	product, err := h.storage.GetProductByID(r.Context(), id)
+	if err != nil {
+		log.Error("failed to get product", slog.Any("error", err))
+		w.WriteHeader(http.StatusNotFound)
+		render.JSON(w, r, map[string]string{
+			"error":   "Not found",
+			"message": "Product not found",
+		})
+		return
+	}
+
+	log.Info("Retrieved product successfully",
+		slog.String("url", r.URL.String()),
+		slog.Int("id", product.ID),
+	)
+
+	render.JSON(w, r, product)
 }
 
 func (h *Handler) CreateProduct(w http.ResponseWriter, r *http.Request) {

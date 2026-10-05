@@ -59,6 +59,54 @@ func TestGetAllProducts_Error(t *testing.T) {
 	}
 }
 
+
+func TestGetProductByID_Success(t *testing.T) {
+	mock := &ProductsMock{
+		GetProductByIDFunc: func(ctx context.Context, id int) (models.Product, error) {
+			return models.Product{ID: id, Name: "Dog Food"}, nil
+		},
+	}
+
+	req := httptest.NewRequest(http.MethodGet, "/products/1", nil)
+	routeCtx := chi.NewRouteContext()
+	routeCtx.URLParams.Add("id", "1")
+
+	req = req.WithContext(
+		context.WithValue(req.Context(), chi.RouteCtxKey, routeCtx),
+	)
+
+	w := httptest.NewRecorder()
+	handler := New(slog.Default(), mock)
+	handler.GetProductByID(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Fatalf("expected status 200, got %d", w.Code)
+	}
+}	
+
+func TestGetProductByID_NotFound(t *testing.T) {
+	mock := &ProductsMock{
+		GetProductByIDFunc: func(ctx context.Context, id int) (models.Product, error) {
+			return models.Product{}, errors.New("not found")
+		},
+	}
+
+	req := httptest.NewRequest(http.MethodGet, "/products/999", nil)
+	routeCtx := chi.NewRouteContext()
+	routeCtx.URLParams.Add("id", "999")
+
+	req = req.WithContext(
+		context.WithValue(req.Context(), chi.RouteCtxKey, routeCtx),
+	)
+
+	w := httptest.NewRecorder()
+	handler := New(slog.Default(), mock)
+	handler.GetProductByID(w, req)
+
+	if w.Code != http.StatusNotFound {
+		t.Fatalf("expected status 404, got %d", w.Code)
+	}
+}
 // =======================
 // Create Product
 // =======================
