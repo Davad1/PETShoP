@@ -3,6 +3,8 @@ package postgres
 import (
 	"context"
 	"PETShoP/internal/storage"
+	"errors"
+	"github.com/jackc/pgx/v5"
 	"fmt"
 	"PETShoP/internal/models"
 )
@@ -44,6 +46,9 @@ func (s *Storage) GetProductByID(ctx context.Context, id int) (models.Product, e
 
 	var p models.Product
 	if err := row.Scan(&p.ID, &p.Name, &p.Price, &p.Stock); err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return models.Product{}, storage.ErrNotFound
+		}
 		return models.Product{}, fmt.Errorf("%s: %w", fn, err)
 	}
 

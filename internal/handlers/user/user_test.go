@@ -167,8 +167,8 @@ func TestCreateUser_Success(t *testing.T) {
 	handler := New(slog.Default(), mock)
 	handler.CreateUser(w, req)
 
-	if w.Code != http.StatusOK {
-		t.Fatalf("expected status 200, got %d", w.Code)
+	if w.Code != http.StatusCreated {
+		t.Fatalf("expected status 201, got %d", w.Code)
 	}
 }
 

@@ -5,7 +5,10 @@ import (
 	"PETShoP/internal/models"
 	"log/slog"
 	"net/http"
+	"errors"
+	"PETShoP/internal/storage"
 	"net/mail"
+	"strings"
 
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
@@ -85,12 +88,21 @@ func (h* Handler) GetUserByEmail(w http.ResponseWriter, r *http.Request) {
 	 
 
 	user, err := h.storage.GetUserByEmail(r.Context(), email)
-	if err != nil{
+	if err != nil {
+		if errors.Is(err, storage.ErrNotFound) || strings.Contains(strings.ToLower(err.Error()), "not found") {
+			render.Status(r, http.StatusNotFound)
+			render.JSON(w, r, map[string]string{
+				"error":   "Not found",
+				"message": "User not found",
+			})
+			return
+		}
+
 		log.Error("Failed to get user by email", slog.Any("error", err))
-		w.WriteHeader(http.StatusNotFound)
+		render.Status(r, http.StatusInternalServerError)
 		render.JSON(w, r, map[string]string{
-			"error":   "Not found",
-			"message": "User not found",
+			"error":   "Internal server error",
+			"message": "Failed to get user",
 		})
 		return
 	}
@@ -162,8 +174,10 @@ func (h *Handler) CreateUser(w http.ResponseWriter, r *http.Request) {
 		slog.String("url", r.URL.String()),
 	)
 
+	w.WriteHeader(http.StatusCreated)
 	render.JSON(w, r, map[string]interface{}{
 		"status":  "User created successfully",
+		"id": 	user.ID,
 		"user": user,
 	})
 }

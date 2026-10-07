@@ -6,6 +6,7 @@ import (
 	"PETShoP/internal/handlers"
 	"PETShoP/internal/handlers/product"
 	"PETShoP/internal/handlers/user"
+	"PETShoP/internal/handlers/order"
 	"PETShoP/internal/lib/logger"
 	"PETShoP/internal/storage/postgres"
 	"log/slog"
@@ -54,14 +55,21 @@ func main() {
 	// Handlers
 	productHandler := product.New(log, storage)
 	userHandler := user.New(log, storage)
+	orderHandler := order.New(log, storage)
+	orderItemHandler := order.NewItem(log, storage)
 	router.Get("/health", handlers.StatusHandler)
 	router.Get("/products", productHandler.GetAllProducts)
 	router.Get("/products/{id}", productHandler.GetProductByID)
-	router.Post("/products", productHandler.CreateProduct)
+	router.Get("/orders/{id}", orderHandler.GetOrderByID)
+	router.Get("/orders/user/{email}", orderHandler.GetOrdersByUserEmail)
+	router.Get("/users/{email}", userHandler.GetUserByEmail)
+	router.Get("/orders/{orderID}/items", orderItemHandler.GetOrderItemsByOrderID)
 	router.Delete("/products/{id}", productHandler.DeleteProduct)
 	router.Put("/products/{id}", productHandler.UpdateProduct)
-	router.Get("/users/{email}", userHandler.GetUserByEmail)
 	router.Post("/users", userHandler.CreateUser)
+	router.Post("/products", productHandler.CreateProduct)
+	router.Post("/orders", orderHandler.CreateOrder)
+	router.Post("/orders/items", orderItemHandler.AddOrderItem)
 
 	// Settings and started server
 	srv := &http.Server{

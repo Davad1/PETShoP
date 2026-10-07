@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"PETShoP/internal/models"
+	"PETShoP/internal/storage"
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
@@ -87,7 +88,7 @@ func TestGetProductByID_Success(t *testing.T) {
 func TestGetProductByID_NotFound(t *testing.T) {
 	mock := &ProductsMock{
 		GetProductByIDFunc: func(ctx context.Context, id int) (models.Product, error) {
-			return models.Product{}, errors.New("not found")
+			return models.Product{}, storage.ErrNotFound
 		},
 	}
 

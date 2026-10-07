@@ -6,6 +6,8 @@ import (
 	"PETShoP/internal/models"
 	"log/slog"
 	"net/http"
+	"errors"
+	"PETShoP/internal/storage"
 	"strconv"
 	"strings"
 
@@ -91,11 +93,20 @@ func (h *Handler) GetProductByID(w http.ResponseWriter, r *http.Request) {
 
 	product, err := h.storage.GetProductByID(r.Context(), id)
 	if err != nil {
+		if errors.Is(err, storage.ErrNotFound) {
+			render.Status(r, http.StatusNotFound)
+			render.JSON(w, r, map[string]string{
+				"error":   "Not found",
+				"message": "Product not found",
+			})
+			return
+		}
+
 		log.Error("failed to get product", slog.Any("error", err))
-		w.WriteHeader(http.StatusNotFound)
+		render.Status(r, http.StatusInternalServerError)
 		render.JSON(w, r, map[string]string{
-			"error":   "Not found",
-			"message": "Product not found",
+			"error":   "Internal server error",
+			"message": "Failed to get product",
 		})
 		return
 	}
