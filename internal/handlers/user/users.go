@@ -1,8 +1,10 @@
 package user
 
 import (
-	"context"
 	"PETShoP/internal/models"
+	"PETShoP/internal/storage"
+	"context"
+	"errors"
 	"log/slog"
 	"net/http"
 	"net/mail"
@@ -19,7 +21,7 @@ type Users interface {
 }
 
 type Handler struct {
-	log *slog.Logger
+	log     *slog.Logger
 	storage Users
 }
 
@@ -52,11 +54,10 @@ func (h *Handler) GetAllUsers(w http.ResponseWriter, r *http.Request) {
 	render.JSON(w, r, users)
 }
 
-
-func (h* Handler) GetUserByEmail(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) GetUserByEmail(w http.ResponseWriter, r *http.Request) {
 	const fn = "handlers.user.GetUserByEmail"
 
-	 log := h.log.With(
+	log := h.log.With(
 		slog.String("fn", fn),
 		slog.String("request_id", middleware.GetReqID(r.Context())),
 	)
@@ -82,15 +83,26 @@ func (h* Handler) GetUserByEmail(w http.ResponseWriter, r *http.Request) {
 		})
 		return
 	}
-	 
 
 	user, err := h.storage.GetUserByEmail(r.Context(), email)
-	if err != nil{
+	if err != nil {
+		if errors.Is(err, storage.ErrNotFound) {
+			log.Error("User not found", slog.Any("error", err))
+
+			render.Status(r, http.StatusNotFound)
+			render.JSON(w, r, map[string]string{
+				"error":   "Not found",
+				"message": "User not found",
+			})
+			return
+		}
+
 		log.Error("Failed to get user by email", slog.Any("error", err))
-		w.WriteHeader(http.StatusNotFound)
+
+		render.Status(r, http.StatusInternalServerError)
 		render.JSON(w, r, map[string]string{
-			"error":   "Not found",
-			"message": "User not found",
+			"error":   "Internal server error",
+			"message": "Failed to get user",
 		})
 		return
 	}
@@ -145,7 +157,22 @@ func (h *Handler) CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := h.storage.CreateUser(r.Context(), user)
+	addr, err := mail.ParseAddress(user.Email)
+	if err != nil || addr.Address != user.Email {
+		log.Error("invalid email format",
+			slog.Any("error", err),
+			slog.String("email", user.Email),
+		)
+
+		render.Status(r, http.StatusBadRequest)
+		render.JSON(w, r, map[string]string{
+			"error":   "Bad request",
+			"message": "Invalid email format",
+		})
+		return
+	}
+
+	err = h.storage.CreateUser(r.Context(), user)
 	if err != nil {
 		log.Error("Failed to create user", slog.Any("error", err))
 		w.WriteHeader(http.StatusInternalServerError)
@@ -162,8 +189,9 @@ func (h *Handler) CreateUser(w http.ResponseWriter, r *http.Request) {
 		slog.String("url", r.URL.String()),
 	)
 
+	render.Status(r, http.StatusCreated)
 	render.JSON(w, r, map[string]interface{}{
-		"status":  "User created successfully",
-		"user": user,
+		"status": "User created successfully",
+		"user":   user,
 	})
 }

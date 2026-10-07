@@ -1,9 +1,11 @@
 package product
 
 import (
-	"context"
-	"fmt"
 	"PETShoP/internal/models"
+	"PETShoP/internal/storage"
+	"context"
+	"errors"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"strconv"
@@ -89,13 +91,34 @@ func (h *Handler) GetProductByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if id <= 0 {
+		log.Error("invalid product id", slog.Int("id", id))
+
+		render.Status(r, http.StatusBadRequest)
+		render.JSON(w, r, map[string]string{
+			"error":   "Bad request",
+			"message": "Product ID must be greater than zero",
+		})
+		return
+	}
+
 	product, err := h.storage.GetProductByID(r.Context(), id)
 	if err != nil {
+		if errors.Is(err, storage.ErrNotFound) {
+			log.Error("product not found", slog.Any("error", err))
+			w.WriteHeader(http.StatusNotFound)
+			render.JSON(w, r, map[string]string{
+				"error":   "Not found",
+				"message": "Product not found",
+			})
+			return
+		}
+
 		log.Error("failed to get product", slog.Any("error", err))
-		w.WriteHeader(http.StatusNotFound)
+		w.WriteHeader(http.StatusInternalServerError)
 		render.JSON(w, r, map[string]string{
-			"error":   "Not found",
-			"message": "Product not found",
+			"error":   "Internal server error",
+			"message": "Failed to get product",
 		})
 		return
 	}
@@ -152,11 +175,11 @@ func (h *Handler) CreateProduct(w http.ResponseWriter, r *http.Request) {
 
 	if product.Stock < 0 {
 		log.Error("product stock is negative", slog.Int("stock", product.Stock))
+		render.Status(r, http.StatusBadRequest)
 		render.JSON(w, r, map[string]string{
 			"error":   "Bad request",
 			"message": "Product stock cannot be negative",
 		})
-		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
@@ -180,6 +203,7 @@ func (h *Handler) CreateProduct(w http.ResponseWriter, r *http.Request) {
 
 	// Возвращаем созданный продукт с его ID
 	product.ID = productID
+	render.Status(r, http.StatusCreated)
 	render.JSON(w, r, map[string]interface{}{
 		"status":  "Product created successfully",
 		"id":      productID,
@@ -287,6 +311,17 @@ func (h *Handler) UpdateProduct(w http.ResponseWriter, r *http.Request) {
 		render.JSON(w, r, map[string]string{
 			"error":   "Bad request",
 			"message": "Product ID must be a number",
+		})
+		return
+	}
+
+	if id <= 0 {
+		log.Error("invalid product id", slog.Int("id", id))
+
+		render.Status(r, http.StatusBadRequest)
+		render.JSON(w, r, map[string]string{
+			"error":   "Bad request",
+			"message": "Product ID must be greater than zero",
 		})
 		return
 	}

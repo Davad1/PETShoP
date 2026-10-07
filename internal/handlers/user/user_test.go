@@ -1,6 +1,7 @@
 package user
 
 import (
+	"PETShoP/internal/storage"
 	"context"
 	"errors"
 	"log/slog"
@@ -124,7 +125,7 @@ func TestGetUserByEmail_InvalidEmail(t *testing.T) {
 func TestGetUserByEmail_NotFound(t *testing.T) {
 	mock := &UsersMock{
 		GetUserByEmailFunc: func(ctx context.Context, email string) (models.User, error) {
-			return models.User{}, errors.New("user not found")
+			return models.User{}, storage.ErrNotFound
 		},
 	}
 
@@ -167,8 +168,8 @@ func TestCreateUser_Success(t *testing.T) {
 	handler := New(slog.Default(), mock)
 	handler.CreateUser(w, req)
 
-	if w.Code != http.StatusOK {
-		t.Fatalf("expected status 200, got %d", w.Code)
+	if w.Code != http.StatusCreated {
+		t.Fatalf("expected status 201, got %d", w.Code)
 	}
 }
 

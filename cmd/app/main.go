@@ -1,13 +1,13 @@
 package main
 
 import (
-	"context"
 	"PETShoP/internal/config"
 	"PETShoP/internal/handlers"
 	"PETShoP/internal/handlers/product"
 	"PETShoP/internal/handlers/user"
 	"PETShoP/internal/lib/logger"
 	"PETShoP/internal/storage/postgres"
+	"context"
 	"log/slog"
 	"net/http"
 	"os"
@@ -57,6 +57,7 @@ func main() {
 	router.Get("/health", handlers.StatusHandler)
 	router.Get("/products", productHandler.GetAllProducts)
 	router.Get("/products/{id}", productHandler.GetProductByID)
+	router.Get("/users", userHandler.GetAllUsers)
 	router.Post("/products", productHandler.CreateProduct)
 	router.Delete("/products/{id}", productHandler.DeleteProduct)
 	router.Put("/products/{id}", productHandler.UpdateProduct)
