@@ -23,13 +23,15 @@ import (
 func TestCreateOrder_Success(t *testing.T) {
 	mock := &OrderMock{
 		CreateOrderFunc: func(order models.Order) (int, error) {
+			if order.TotalPrice != 0 {
+				t.Fatalf("expected total price 0, got %f", order.TotalPrice)
+			}
 			return 1, nil
 		},
 	}
 
 	body := `{
-		"CustomerID": 1,
-		"TotalPrice": 99.99
+		"CustomerID": 1
 	}`
 
 	req := httptest.NewRequest(http.MethodPost, "/orders", strings.NewReader(body))
@@ -80,8 +82,7 @@ func TestCreateOrder_Fail(t *testing.T) {
 	}
 
 	body := `{
-		"CustomerID": 1,
-		"TotalPrice": 99.99
+		"CustomerID": 1
 	}`
 
 	req := httptest.NewRequest(http.MethodPost, "/orders", strings.NewReader(body))
@@ -92,6 +93,33 @@ func TestCreateOrder_Fail(t *testing.T) {
 
 	if w.Code != http.StatusInternalServerError {
 		t.Fatalf("expected status 500, got %d", w.Code)
+	}
+}
+
+func TestCreateOrder_NotFound(t *testing.T) {
+	mock := &OrderMock{
+		CreateOrderFunc: func(order models.Order) (int, error) {
+			return 0, storage.ErrNotFound
+		},
+	}
+
+	body := `{
+		"CustomerID": 999
+	}`
+
+	req := httptest.NewRequest(
+		http.MethodPost,
+		"/orders",
+		strings.NewReader(body),
+	)
+
+	w := httptest.NewRecorder()
+
+	handler := New(slog.Default(), mock)
+	handler.CreateOrder(w, req)
+
+	if w.Code != http.StatusNotFound {
+		t.Fatalf("expected status 404, got %d", w.Code)
 	}
 }
 
@@ -246,12 +274,10 @@ func TestGetOrdersByUserEmail_Success(t *testing.T) {
 		},
 	}
 
-	req := httptest.NewRequest(http.MethodGet, "/orders/user/alice@example.com", nil)
-	routeCtx := chi.NewRouteContext()
-	routeCtx.URLParams.Add("email", "alice@example.com")
-
-	req = req.WithContext(
-		context.WithValue(req.Context(), chi.RouteCtxKey, routeCtx),
+	req := httptest.NewRequest(
+		http.MethodGet,
+		"/users/orders?email=alice@example.com",
+		nil,
 	)
 
 	w := httptest.NewRecorder()
@@ -264,15 +290,14 @@ func TestGetOrdersByUserEmail_Success(t *testing.T) {
 }
 
 func TestGetOrdersByUserEmail_EmptyEmail(t *testing.T) {
-	req := httptest.NewRequest(http.MethodGet, "/orders/user/", nil)
-	routeCtx := chi.NewRouteContext()
-	routeCtx.URLParams.Add("email", "")
-
-	req = req.WithContext(
-		context.WithValue(req.Context(), chi.RouteCtxKey, routeCtx),
+	req := httptest.NewRequest(
+		http.MethodGet,
+		"/users/orders",
+		nil,
 	)
 
 	w := httptest.NewRecorder()
+
 	handler := New(slog.Default(), &OrderMock{})
 	handler.GetOrdersByUserEmail(w, req)
 
@@ -282,15 +307,14 @@ func TestGetOrdersByUserEmail_EmptyEmail(t *testing.T) {
 }
 
 func TestGetOrdersByUserEmail_InvalidEmail(t *testing.T) {
-	req := httptest.NewRequest(http.MethodGet, "/orders/user/invalid-email", nil)
-	routeCtx := chi.NewRouteContext()
-	routeCtx.URLParams.Add("email", "invalid-email")
-
-	req = req.WithContext(
-		context.WithValue(req.Context(), chi.RouteCtxKey, routeCtx),
+	req := httptest.NewRequest(
+		http.MethodGet,
+		"/users/orders?email=invalid-email",
+		nil,
 	)
 
 	w := httptest.NewRecorder()
+
 	handler := New(slog.Default(), &OrderMock{})
 	handler.GetOrdersByUserEmail(w, req)
 
@@ -306,15 +330,14 @@ func TestGetOrdersByUserEmail_Fail(t *testing.T) {
 		},
 	}
 
-	req := httptest.NewRequest(http.MethodGet, "/orders/user/alice@example.com", nil)
-	routeCtx := chi.NewRouteContext()
-	routeCtx.URLParams.Add("email", "alice@example.com")
-
-	req = req.WithContext(
-		context.WithValue(req.Context(), chi.RouteCtxKey, routeCtx),
+	req := httptest.NewRequest(
+		http.MethodGet,
+		"/users/orders?email=alice@example.com",
+		nil,
 	)
 
 	w := httptest.NewRecorder()
+
 	handler := New(slog.Default(), mock)
 	handler.GetOrdersByUserEmail(w, req)
 

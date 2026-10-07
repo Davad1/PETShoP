@@ -4,15 +4,13 @@ import (
 	"PETShoP/internal/models"
 )
 
-
 type OrderMock struct {
-	CreateOrderFunc func(order models.Order) (int, error)
-	GetOrderByIDFunc func(id int) (models.Order, error)
-	GetOrdersByUserEmailFunc func(email string) ([]models.Order, error)
-	AddOrderItemFunc func(orderItem models.OrderItem) error
+	CreateOrderFunc            func(order models.Order) (int, error)
+	GetOrderByIDFunc           func(id int) (models.Order, error)
+	GetOrdersByUserEmailFunc   func(email string) ([]models.Order, error)
+	AddOrderItemFunc           func(orderItem models.OrderItem) error
 	GetOrderItemsByOrderIDFunc func(orderID int) ([]models.OrderItem, error)
 }
-
 
 func (m *OrderMock) CreateOrder(order models.Order) (int, error) {
 	if m.CreateOrderFunc != nil {

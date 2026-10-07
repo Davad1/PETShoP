@@ -20,7 +20,7 @@ services:
 
   app:
     build: .
-    container_name: go-pet-shop
+    container_name: PetShoP
     env_file:
       - .env
     environment:
@@ -32,7 +32,7 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-    command: ["sh", "-c", "./migrator --migrations-path ./migrations && ./go-pet-shop"]
+    command: ["sh", "-c", "./migrator --migrations-path ./migrations && ./PETShoP"]
 
 volumes:
   postgres_data:

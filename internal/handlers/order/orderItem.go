@@ -2,8 +2,8 @@ package order
 
 import (
 	"PETShoP/internal/models"
-	"net/http"
 	"log/slog"
+	"net/http"
 	"strconv"
 
 	"github.com/go-chi/chi"
@@ -11,14 +11,13 @@ import (
 	"github.com/go-chi/render"
 )
 
-
 type OrdersItem interface {
 	AddOrderItem(orderItem models.OrderItem) error
 	GetOrderItemsByOrderID(orderID int) ([]models.OrderItem, error)
 }
 
 type HandlerItem struct {
-	log *slog.Logger
+	log     *slog.Logger
 	storage OrdersItem
 }
 
@@ -39,6 +38,26 @@ func (h *HandlerItem) AddOrderItem(w http.ResponseWriter, r *http.Request) {
 
 	log.Info("Adding a new order item", slog.String("url", r.URL.String()))
 
+	idStr := chi.URLParam(r, "id")
+	if idStr == "" {
+		render.Status(r, http.StatusBadRequest)
+		render.JSON(w, r, map[string]string{
+			"error":   "Bad request",
+			"message": "Order ID is required",
+		})
+		return
+	}
+
+	orderID, err := strconv.Atoi(idStr)
+	if err != nil || orderID <= 0 {
+		render.Status(r, http.StatusBadRequest)
+		render.JSON(w, r, map[string]string{
+			"error":   "Bad request",
+			"message": "Order ID must be a positive number",
+		})
+		return
+	}
+
 	var orderItem models.OrderItem
 	if err := render.DecodeJSON(r.Body, &orderItem); err != nil {
 		log.Error("failed to decode request body", slog.Any("error", err))
@@ -50,7 +69,9 @@ func (h *HandlerItem) AddOrderItem(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if orderItem.OrderID <= 0 || orderItem.ProductID <= 0 || orderItem.Quantity <= 0 {
+	orderItem.OrderID = orderID
+
+	if orderItem.ProductID <= 0 || orderItem.Quantity <= 0 {
 		log.Error("invalid order item",
 			slog.Int("order_id", orderItem.OrderID),
 			slog.Int("product_id", orderItem.ProductID),
@@ -59,7 +80,7 @@ func (h *HandlerItem) AddOrderItem(w http.ResponseWriter, r *http.Request) {
 		render.Status(r, http.StatusBadRequest)
 		render.JSON(w, r, map[string]string{
 			"error":   "Bad request",
-			"message": "Order ID, product ID and quantity must be greater than zero",
+			"message": "Product ID and quantity must be greater than zero",
 		})
 		return
 	}

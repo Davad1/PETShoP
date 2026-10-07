@@ -26,12 +26,17 @@ func TestAddOrderItem_Success(t *testing.T) {
 	}
 
 	body := `{
-		"OrderID": 1,
 		"ProductID": 1,
 		"Quantity": 2
 	}`
 
-	req := httptest.NewRequest(http.MethodPost, "/order-items", strings.NewReader(body))
+	req := httptest.NewRequest(http.MethodPost, "/orders/1/items", strings.NewReader(body))
+
+	routeCtx := chi.NewRouteContext()
+	routeCtx.URLParams.Add("id", "1")
+
+	req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, routeCtx))
+
 	w := httptest.NewRecorder()
 
 	handler := NewItem(slog.Default(), mock)
@@ -43,7 +48,7 @@ func TestAddOrderItem_Success(t *testing.T) {
 }
 
 func TestAddOrderItem_BadRequest(t *testing.T) {
-	req := httptest.NewRequest(http.MethodPost, "/order-items", strings.NewReader(`{"OrderID":`))
+	req := httptest.NewRequest(http.MethodPost, "/orders/1/items", strings.NewReader(`{"ProductID":`))
 	w := httptest.NewRecorder()
 
 	handler := NewItem(slog.Default(), &OrderMock{})
@@ -62,12 +67,17 @@ func TestAddOrderItem_Fail(t *testing.T) {
 	}
 
 	body := `{
-		"OrderID": 1,
 		"ProductID": 1,
 		"Quantity": 2
 	}`
 
-	req := httptest.NewRequest(http.MethodPost, "/order-items", strings.NewReader(body))
+	req := httptest.NewRequest(http.MethodPost, "/orders/1/items", strings.NewReader(body))
+
+	routeCtx := chi.NewRouteContext()
+	routeCtx.URLParams.Add("id", "1")
+
+	req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, routeCtx))
+
 	w := httptest.NewRecorder()
 
 	handler := NewItem(slog.Default(), mock)

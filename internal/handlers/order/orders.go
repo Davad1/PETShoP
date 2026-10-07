@@ -2,18 +2,17 @@ package order
 
 import (
 	"PETShoP/internal/models"
-	"net/http"
-	"log/slog"
-	"strconv"
-	"errors"
 	"PETShoP/internal/storage"
+	"errors"
+	"log/slog"
+	"net/http"
 	"net/mail"
+	"strconv"
 
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/render"
 )
-
 
 type Orders interface {
 	CreateOrder(order models.Order) (int, error)
@@ -22,7 +21,7 @@ type Orders interface {
 }
 
 type Handler struct {
-	log *slog.Logger
+	log     *slog.Logger
 	storage Orders
 }
 
@@ -64,10 +63,27 @@ func (h *Handler) CreateOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	order.TotalPrice = 0
+
 	orderID, err := h.storage.CreateOrder(order)
 	if err != nil {
+		if errors.Is(err, storage.ErrNotFound) {
+			log.Error("customer not found",
+				slog.Any("error", err),
+				slog.Int("customer_id", order.CustomerID),
+			)
+
+			render.Status(r, http.StatusNotFound)
+			render.JSON(w, r, map[string]string{
+				"error":   "Not found",
+				"message": "Customer not found",
+			})
+			return
+		}
+
 		log.Error("failed to create order", slog.Any("error", err))
-		w.WriteHeader(http.StatusInternalServerError)
+
+		render.Status(r, http.StatusInternalServerError)
 		render.JSON(w, r, map[string]string{
 			"error":   "Internal server error",
 			"message": "Failed to create order",
@@ -84,14 +100,12 @@ func (h *Handler) CreateOrder(w http.ResponseWriter, r *http.Request) {
 	order.ID = orderID
 	w.WriteHeader(http.StatusCreated)
 	render.JSON(w, r, map[string]interface{}{
-		"status": "Order created successfully",
-		"id": orderID,
-		"order": order,
+		"status":      "Order created successfully",
+		"id":          orderID,
+		"order":       order,
 		"total_price": order.TotalPrice,
-
 	})
 }
-
 
 func (h *Handler) GetOrderByID(w http.ResponseWriter, r *http.Request) {
 	const fn = "handlers.order.GetOrderByID"
@@ -168,7 +182,7 @@ func (h *Handler) GetOrdersByUserEmail(w http.ResponseWriter, r *http.Request) {
 		slog.String("request_id", middleware.GetReqID(r.Context())),
 	)
 
-	email := chi.URLParam(r, "email")
+	email := r.URL.Query().Get("email")
 	if email == "" {
 		log.Error("Email parameter is missing")
 		w.WriteHeader(http.StatusBadRequest)
