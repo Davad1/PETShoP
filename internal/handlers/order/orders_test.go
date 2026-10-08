@@ -246,13 +246,7 @@ func TestGetOrdersByUserEmail_Success(t *testing.T) {
 		},
 	}
 
-	req := httptest.NewRequest(http.MethodGet, "/orders/user/alice@example.com", nil)
-	routeCtx := chi.NewRouteContext()
-	routeCtx.URLParams.Add("email", "alice@example.com")
-
-	req = req.WithContext(
-		context.WithValue(req.Context(), chi.RouteCtxKey, routeCtx),
-	)
+	req := httptest.NewRequest(http.MethodGet, "/users/orders?email=alice@example.com", nil)
 
 	w := httptest.NewRecorder()
 	handler := New(slog.Default(), mock)
@@ -264,13 +258,7 @@ func TestGetOrdersByUserEmail_Success(t *testing.T) {
 }
 
 func TestGetOrdersByUserEmail_EmptyEmail(t *testing.T) {
-	req := httptest.NewRequest(http.MethodGet, "/orders/user/", nil)
-	routeCtx := chi.NewRouteContext()
-	routeCtx.URLParams.Add("email", "")
-
-	req = req.WithContext(
-		context.WithValue(req.Context(), chi.RouteCtxKey, routeCtx),
-	)
+	req := httptest.NewRequest(http.MethodGet, "/users/orders", nil)
 
 	w := httptest.NewRecorder()
 	handler := New(slog.Default(), &OrderMock{})
@@ -282,13 +270,7 @@ func TestGetOrdersByUserEmail_EmptyEmail(t *testing.T) {
 }
 
 func TestGetOrdersByUserEmail_InvalidEmail(t *testing.T) {
-	req := httptest.NewRequest(http.MethodGet, "/orders/user/invalid-email", nil)
-	routeCtx := chi.NewRouteContext()
-	routeCtx.URLParams.Add("email", "invalid-email")
-
-	req = req.WithContext(
-		context.WithValue(req.Context(), chi.RouteCtxKey, routeCtx),
-	)
+	req := httptest.NewRequest(http.MethodGet, "/users/orders?email=invalid-email", nil)
 
 	w := httptest.NewRecorder()
 	handler := New(slog.Default(), &OrderMock{})
@@ -306,13 +288,7 @@ func TestGetOrdersByUserEmail_Fail(t *testing.T) {
 		},
 	}
 
-	req := httptest.NewRequest(http.MethodGet, "/orders/user/alice@example.com", nil)
-	routeCtx := chi.NewRouteContext()
-	routeCtx.URLParams.Add("email", "alice@example.com")
-
-	req = req.WithContext(
-		context.WithValue(req.Context(), chi.RouteCtxKey, routeCtx),
-	)
+	req := httptest.NewRequest(http.MethodGet, "/users/orders?email=alice@example.com", nil)
 
 	w := httptest.NewRecorder()
 	handler := New(slog.Default(), mock)

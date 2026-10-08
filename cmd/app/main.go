@@ -50,7 +50,6 @@ func main() {
 	// Middlewares
 	router.Use(middleware.RequestID)
 	router.Use(middleware.Recoverer)
-	router.Use(middleware.URLFormat)
 	router.Use(logger.CustomLogger(log))
 
 	// Handlers
@@ -63,15 +62,15 @@ func main() {
 	router.Get("/products", productHandler.GetAllProducts)
 	router.Get("/products/{id}", productHandler.GetProductByID)
 	router.Get("/orders/{id}", orderHandler.GetOrderByID)
-	router.Get("/orders/user/{email}", orderHandler.GetOrdersByUserEmail)
+	router.Get("/users/orders", orderHandler.GetOrdersByUserEmail)
 	router.Get("/users/{email}", userHandler.GetUserByEmail)
-	router.Get("/orders/{orderID}/items", orderItemHandler.GetOrderItemsByOrderID)
+	router.Get("/orders/{id}/items", orderItemHandler.GetOrderItemsByOrderID)
 	router.Delete("/products/{id}", productHandler.DeleteProduct)
 	router.Put("/products/{id}", productHandler.UpdateProduct)
 	router.Post("/users", userHandler.CreateUser)
 	router.Post("/products", productHandler.CreateProduct)
 	router.Post("/orders", orderHandler.CreateOrder)
-	router.Post("/orders/items", orderItemHandler.AddOrderItem)
+	router.Post("/orders/{id}/items", orderItemHandler.AddOrderItem)
 	router.Post("/checkout", checkoutHandler.PlaceOrder)
 
 	// Settings and started server

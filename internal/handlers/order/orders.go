@@ -165,7 +165,7 @@ func (h *Handler) GetOrdersByUserEmail(w http.ResponseWriter, r *http.Request) {
 		slog.String("request_id", middleware.GetReqID(r.Context())),
 	)
 
-	email := chi.URLParam(r, "email")
+	email := r.URL.Query().Get("email")
 	if email == "" {
 		log.Error("Email parameter is missing")
 		w.WriteHeader(http.StatusBadRequest)
