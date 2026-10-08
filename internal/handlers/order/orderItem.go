@@ -2,6 +2,8 @@ package order
 
 import (
 	"PETShoP/internal/models"
+	"PETShoP/internal/storage"
+	"errors"
 	"log/slog"
 	"net/http"
 	"strconv"
@@ -86,6 +88,15 @@ func (h *HandlerItem) AddOrderItem(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.storage.AddOrderItem(orderItem); err != nil {
+		if errors.Is(err, storage.ErrNotFound) {
+			render.Status(r, http.StatusNotFound)
+			render.JSON(w, r, map[string]string{
+				"error":   "Not found",
+				"message": "Order or product not found",
+			})
+			return
+		}
+
 		log.Error("failed to add order item", slog.Any("error", err))
 		render.Status(r, http.StatusInternalServerError)
 		render.JSON(w, r, map[string]string{

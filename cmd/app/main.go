@@ -49,7 +49,6 @@ func main() {
 	// Middlewares
 	router.Use(middleware.RequestID)
 	router.Use(middleware.Recoverer)
-	router.Use(middleware.URLFormat)
 	router.Use(logger.CustomLogger(log))
 
 	// Handlers

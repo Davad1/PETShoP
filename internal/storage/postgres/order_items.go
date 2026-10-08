@@ -10,6 +10,14 @@ import (
 func (s *Storage) AddOrderItem(orderItem models.OrderItem) error {
 	const fn = "storage.postgres.AddOrderItem"
 
+	if _, err := s.GetOrderByID(orderItem.OrderID); err != nil {
+		return err
+	}
+
+	if _, err := s.GetProductByID(context.Background(), orderItem.ProductID); err != nil {
+		return err
+	}
+
 	_, err := s.db.Exec(context.Background(),
 		`INSERT INTO order_items (order_id, product_id, quantity) VALUES ($1, $2, $3)`,
 		orderItem.OrderID, orderItem.ProductID, orderItem.Quantity)
