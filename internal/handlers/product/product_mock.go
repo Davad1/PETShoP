@@ -1,8 +1,8 @@
 package product
 
 import (
-	"context"
 	"PETShoP/internal/models"
+	"context"
 )
 
 type ProductsMock struct {

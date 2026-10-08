@@ -1,70 +1,77 @@
-## V2 — Orders and Order Items
+## V3 — Checkout и транзакции
 
-Во второй версии проекта добавлена работа с заказами и позициями заказа.
+В третьей версии проекта добавлено оформление заказа через PostgreSQL-транзакцию.
 
 ### Реализовано
 
-#### Orders
-- Создание нового заказа.
-- Получение заказа по ID.
-- Получение заказов пользователя по email.
-- Валидация входных данных.
-- Обработка ошибок `400`, `404` и `500`.
+- endpoint `POST /checkout`;
+- метод `PlaceOrder(userEmail string, items []models.OrderItem) (int, error)`;
+- создание заказа внутри транзакции;
+- проверка пользователя по email;
+- проверка наличия товара;
+- уменьшение `stock`;
+- создание `order_items`;
+- расчёт и обновление `total_price`;
+- создание записи в таблице `transactions`;
+- `COMMIT` при успешном оформлении;
+- `ROLLBACK` при любой ошибке;
+- ошибка `ErrInsufficientStock` при недостаточном количестве товара;
+- отдельный пакет `handlers/checkout`;
+- ручной mock и unit-тесты checkout handler.
 
-**Методы storage:**
-```go
-CreateOrder(order models.Order) (int, error)
-GetOrderByID(id int) (models.Order, error)
-GetOrdersByUserEmail(email string) ([]models.Order, error)
+### Endpoint
+
+```text
+POST /checkout
 ```
 
-**HTTP endpoints:**
-- `POST /orders`
-- `GET /orders/{id}`
-- `GET /orders/user/{email}`
 
----
+### Команды
 
-#### Order Items
-- Добавление позиции в заказ.
-- Получение всех позиций заказа.
-- Автоматический пересчёт `total_price` после добавления товара.
-
-**Методы storage:**
-```go
-AddOrderItem(orderItem models.OrderItem) error
-GetOrderItemsByOrderID(orderID int) ([]models.OrderItem, error)
-UpdateOrderTotalPrice(orderID int) error
-```
-
-**HTTP endpoints:**
-- `POST /orders/{id}/items`
-- `GET /orders/{id}/items`
-
----
-
-#### Total Price
-После добавления новой позиции в заказ автоматически пересчитывается общая стоимость заказа:
-- Формула расчёта: `product price × quantity`
-- Подсчёт выполняется SQL-запросом с `SUM` и `JOIN` таблиц `order_items` и `products`.
-
----
-
-#### Tests
-Для HTTP-хендлеров используются ручные моки storage:
-- Успешный запрос.
-- Некорректные входные данные (`400 Bad Request`).
-- Отсутствие записи (`404 Not Found`).
-- Внутренняя ошибка слоя storage (`500 Internal Server Error`).
-
----
-
-### Проверка проекта
+Установка зависимостей:
 
 ```bash
-# Запуск тестов
-go test -v ./...
+go mod tidy
+```
 
-# Запуск линтера
+Запуск проекта:
+
+```bash
+docker compose up --build
+```
+
+Запуск тестов:
+
+```bash
+go test ./...
+```
+
+Подробный вывод тестов:
+
+```bash
+go test -v ./...
+```
+
+Линтер:
+
+```bash
 golangci-lint run ./...
+```
+
+Форматирование:
+
+```bash
+go fmt ./...
+```
+
+Остановка Docker:
+
+```bash
+docker compose down
+```
+
+Остановка с удалением данных PostgreSQL:
+
+```bash
+docker compose down -v
 ```

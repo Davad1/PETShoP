@@ -32,5 +32,5 @@ type OrderItem struct {
 type User struct {
 	ID    int
 	Name  string
-	Email string 
+	Email string
 }

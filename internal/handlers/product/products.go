@@ -1,13 +1,13 @@
 package product
 
 import (
-	"context"
-	"fmt"
 	"PETShoP/internal/models"
+	"PETShoP/internal/storage"
+	"context"
+	"errors"
+	"fmt"
 	"log/slog"
 	"net/http"
-	"errors"
-	"PETShoP/internal/storage"
 	"strconv"
 	"strings"
 

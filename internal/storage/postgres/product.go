@@ -1,17 +1,13 @@
 package postgres
 
 import (
-	"context"
-	"PETShoP/internal/storage"
-	"errors"
-	"github.com/jackc/pgx/v5"
-	"fmt"
 	"PETShoP/internal/models"
+	"PETShoP/internal/storage"
+	"context"
+	"errors"
+	"fmt"
+	"github.com/jackc/pgx/v5"
 )
-
-
-
-
 
 func (s *Storage) GetAllProducts(ctx context.Context) ([]models.Product, error) {
 	const fn = "storage.postgres.product.GetAllProducts"
@@ -41,7 +37,7 @@ func (s *Storage) GetAllProducts(ctx context.Context) ([]models.Product, error) 
 
 func (s *Storage) GetProductByID(ctx context.Context, id int) (models.Product, error) {
 	const fn = "storage.postgres.product.GetProductByID"
-	
+
 	row := s.db.QueryRow(ctx, `SELECT id, name, price, stock FROM products WHERE id = $1`, id)
 
 	var p models.Product

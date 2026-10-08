@@ -1,13 +1,13 @@
 package postgres
 
 import (
-	"context"
-	"PETShoP/internal/storage"
-	"errors"
-	"github.com/jackc/pgx/v5/pgconn"
-	"fmt"
 	"PETShoP/internal/models"
+	"PETShoP/internal/storage"
+	"context"
+	"errors"
+	"fmt"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 )
 
 func (s *Storage) CreateOrder(order models.Order) (int, error) {
@@ -20,13 +20,12 @@ func (s *Storage) CreateOrder(order models.Order) (int, error) {
 
 	if err != nil {
 		var pgErr *pgconn.PgError
-			if errors.As(err, &pgErr) && pgErr.Code == "23503" {
+		if errors.As(err, &pgErr) && pgErr.Code == "23503" {
 			return 0, storage.ErrNotFound
 		}
 
 		return 0, fmt.Errorf("%s: %w", fn, err)
 	}
-
 
 	return id, nil
 }

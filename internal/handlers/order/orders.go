@@ -2,18 +2,17 @@ package order
 
 import (
 	"PETShoP/internal/models"
-	"net/http"
-	"log/slog"
-	"strconv"
-	"errors"
 	"PETShoP/internal/storage"
+	"errors"
+	"log/slog"
+	"net/http"
 	"net/mail"
+	"strconv"
 
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/render"
 )
-
 
 type Orders interface {
 	CreateOrder(order models.Order) (int, error)
@@ -22,7 +21,7 @@ type Orders interface {
 }
 
 type Handler struct {
-	log *slog.Logger
+	log     *slog.Logger
 	storage Orders
 }
 
@@ -84,14 +83,12 @@ func (h *Handler) CreateOrder(w http.ResponseWriter, r *http.Request) {
 	order.ID = orderID
 	w.WriteHeader(http.StatusCreated)
 	render.JSON(w, r, map[string]interface{}{
-		"status": "Order created successfully",
-		"id": orderID,
-		"order": order,
+		"status":      "Order created successfully",
+		"id":          orderID,
+		"order":       order,
 		"total_price": order.TotalPrice,
-
 	})
 }
-
 
 func (h *Handler) GetOrderByID(w http.ResponseWriter, r *http.Request) {
 	const fn = "handlers.order.GetOrderByID"

@@ -2,8 +2,8 @@ package order
 
 import (
 	"PETShoP/internal/models"
-	"net/http"
 	"log/slog"
+	"net/http"
 	"strconv"
 
 	"github.com/go-chi/chi"
@@ -11,14 +11,13 @@ import (
 	"github.com/go-chi/render"
 )
 
-
 type OrdersItem interface {
 	AddOrderItem(orderItem models.OrderItem) error
 	GetOrderItemsByOrderID(orderID int) ([]models.OrderItem, error)
 }
 
 type HandlerItem struct {
-	log *slog.Logger
+	log     *slog.Logger
 	storage OrdersItem
 }
 

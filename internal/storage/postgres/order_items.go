@@ -1,10 +1,10 @@
 package postgres
 
 import (
-	"context"
-	"fmt"
 	"PETShoP/internal/models"
 	"PETShoP/internal/storage"
+	"context"
+	"fmt"
 )
 
 func (s *Storage) AddOrderItem(orderItem models.OrderItem) error {
@@ -13,14 +13,13 @@ func (s *Storage) AddOrderItem(orderItem models.OrderItem) error {
 	_, err := s.db.Exec(context.Background(),
 		`INSERT INTO order_items (order_id, product_id, quantity) VALUES ($1, $2, $3)`,
 		orderItem.OrderID, orderItem.ProductID, orderItem.Quantity)
-	
+
 	if err != nil {
 		return fmt.Errorf("%s: %w", fn, err)
 	}
 
 	return s.UpdateOrderTotalPrice(orderItem.OrderID)
 }
-
 
 func (s *Storage) GetOrderItemsByOrderID(orderID int) ([]models.OrderItem, error) {
 	const fn = "storage.postgres.GetOrderItemsByOrderID"

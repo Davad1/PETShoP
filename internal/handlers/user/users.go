@@ -1,12 +1,12 @@
 package user
 
 import (
-	"context"
 	"PETShoP/internal/models"
+	"PETShoP/internal/storage"
+	"context"
+	"errors"
 	"log/slog"
 	"net/http"
-	"errors"
-	"PETShoP/internal/storage"
 	"net/mail"
 	"strings"
 
@@ -22,7 +22,7 @@ type Users interface {
 }
 
 type Handler struct {
-	log *slog.Logger
+	log     *slog.Logger
 	storage Users
 }
 
@@ -55,11 +55,10 @@ func (h *Handler) GetAllUsers(w http.ResponseWriter, r *http.Request) {
 	render.JSON(w, r, users)
 }
 
-
-func (h* Handler) GetUserByEmail(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) GetUserByEmail(w http.ResponseWriter, r *http.Request) {
 	const fn = "handlers.user.GetUserByEmail"
 
-	 log := h.log.With(
+	log := h.log.With(
 		slog.String("fn", fn),
 		slog.String("request_id", middleware.GetReqID(r.Context())),
 	)
@@ -85,7 +84,6 @@ func (h* Handler) GetUserByEmail(w http.ResponseWriter, r *http.Request) {
 		})
 		return
 	}
-	 
 
 	user, err := h.storage.GetUserByEmail(r.Context(), email)
 	if err != nil {
@@ -176,8 +174,8 @@ func (h *Handler) CreateUser(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusCreated)
 	render.JSON(w, r, map[string]interface{}{
-		"status":  "User created successfully",
-		"id": 	user.ID,
-		"user": user,
+		"status": "User created successfully",
+		"id":     user.ID,
+		"user":   user,
 	})
 }

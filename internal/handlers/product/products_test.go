@@ -1,16 +1,16 @@
 package product
 
 import (
-	"context"
-	"errors"
 	"PETShoP/internal/models"
 	"PETShoP/internal/storage"
+	"context"
+	"errors"
+	"github.com/go-chi/chi"
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
-	"testing"
 	"strings"
-	"github.com/go-chi/chi"
+	"testing"
 )
 
 // Get Product - Ready
@@ -60,7 +60,6 @@ func TestGetAllProducts_Error(t *testing.T) {
 	}
 }
 
-
 func TestGetProductByID_Success(t *testing.T) {
 	mock := &ProductsMock{
 		GetProductByIDFunc: func(ctx context.Context, id int) (models.Product, error) {
@@ -83,7 +82,7 @@ func TestGetProductByID_Success(t *testing.T) {
 	if w.Code != http.StatusOK {
 		t.Fatalf("expected status 200, got %d", w.Code)
 	}
-}	
+}
 
 func TestGetProductByID_NotFound(t *testing.T) {
 	mock := &ProductsMock{
@@ -108,6 +107,7 @@ func TestGetProductByID_NotFound(t *testing.T) {
 		t.Fatalf("expected status 404, got %d", w.Code)
 	}
 }
+
 // =======================
 // Create Product
 // =======================
@@ -255,7 +255,7 @@ func TestUpdateProduct_Fail(t *testing.T) {
 		"stock": 10
 	}`
 
-	req := httptest.NewRequest(http.MethodPut,"/products/1", strings.NewReader(body))
+	req := httptest.NewRequest(http.MethodPut, "/products/1", strings.NewReader(body))
 
 	routeCtx := chi.NewRouteContext()
 	routeCtx.URLParams.Add("id", "1")
