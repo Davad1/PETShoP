@@ -3,6 +3,7 @@ package main
 import (
 	"PETShoP/internal/config"
 	"PETShoP/internal/handlers"
+	"PETShoP/internal/handlers/analytic"
 	"PETShoP/internal/handlers/checkout"
 	"PETShoP/internal/handlers/order"
 	"PETShoP/internal/handlers/product"
@@ -58,12 +59,15 @@ func main() {
 	orderHandler := order.New(log, storage)
 	orderItemHandler := order.NewItem(log, storage)
 	checkoutHandler := checkout.New(log, storage)
+	analyticsHandler := analytic.New(log, storage)
 	router.Get("/health", handlers.StatusHandler)
 	router.Get("/products", productHandler.GetAllProducts)
+	router.Get("/products/popular", analyticsHandler.GetPopularProducts)
 	router.Get("/products/{id}", productHandler.GetProductByID)
-	router.Get("/orders/{id}", orderHandler.GetOrderByID)
 	router.Get("/users/orders", orderHandler.GetOrdersByUserEmail)
+	router.Get("/users/history", analyticsHandler.GetUserOrderHistory)
 	router.Get("/users/{email}", userHandler.GetUserByEmail)
+	router.Get("/orders/{id}", orderHandler.GetOrderByID)
 	router.Get("/orders/{id}/items", orderItemHandler.GetOrderItemsByOrderID)
 	router.Delete("/products/{id}", productHandler.DeleteProduct)
 	router.Put("/products/{id}", productHandler.UpdateProduct)

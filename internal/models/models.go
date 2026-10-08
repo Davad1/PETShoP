@@ -34,3 +34,19 @@ type User struct {
 	Name  string
 	Email string
 }
+
+type OrderDetail struct {
+	OrderID           int
+	ProductID         int
+	ProductName       string
+	Quantity          int
+	TotalPrice        float64
+	TransactionStatus string
+	CreatedAt         time.Time
+}
+
+type PopularProduct struct {
+	ProductID int
+	Name      string
+	TotalSold int
+}
