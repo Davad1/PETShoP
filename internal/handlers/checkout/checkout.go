@@ -1,6 +1,7 @@
 package checkout
 
 import (
+	"context"
 	"errors"
 	"log/slog"
 	"net/http"
@@ -13,7 +14,7 @@ import (
 )
 
 type Checkout interface {
-	PlaceOrder(userEmail string, items []models.OrderItem) (int, error)
+	PlaceOrder(ctx context.Context, userEmail string, items []models.OrderItem) (int, error)
 }
 
 type Handler struct {
@@ -104,7 +105,7 @@ func (h *Handler) PlaceOrder(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	orderID, err := h.storage.PlaceOrder(req.UserEmail, req.Items)
+	orderID, err := h.storage.PlaceOrder(r.Context(), req.UserEmail, req.Items)
 	if err != nil {
 		if errors.Is(err, storage.ErrNotFound) {
 			log.Error("resource not found", slog.Any("error", err))

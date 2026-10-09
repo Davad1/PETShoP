@@ -9,10 +9,8 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-func (s *Storage) PlaceOrder(userEmail string, items []models.OrderItem) (int, error) {
+func (s *Storage) PlaceOrder(ctx context.Context, userEmail string, items []models.OrderItem) (int, error) {
 	const fn = "storage.postgres.PlaceOrder"
-
-	ctx := context.Background()
 
 	tx, err := s.db.Begin(ctx)
 	if err != nil {

@@ -22,7 +22,7 @@ import (
 
 func TestCreateOrder_Success(t *testing.T) {
 	mock := &OrderMock{
-		CreateOrderFunc: func(order models.Order) (int, error) {
+		CreateOrderFunc: func(ctx context.Context, order models.Order) (int, error) {
 			return 1, nil
 		},
 	}
@@ -74,7 +74,7 @@ func TestCreateOrder_InvalidCustomerID(t *testing.T) {
 
 func TestCreateOrder_Fail(t *testing.T) {
 	mock := &OrderMock{
-		CreateOrderFunc: func(order models.Order) (int, error) {
+		CreateOrderFunc: func(ctx context.Context, order models.Order) (int, error) {
 			return 0, errors.New("db error")
 		},
 	}
@@ -102,7 +102,7 @@ func TestCreateOrder_Fail(t *testing.T) {
 func TestGetOrderByID_Success(t *testing.T) {
 	now := time.Now()
 	mock := &OrderMock{
-		GetOrderByIDFunc: func(id int) (models.Order, error) {
+		GetOrderByIDFunc: func(ctx context.Context, id int) (models.Order, error) {
 			return models.Order{
 				ID:         id,
 				CustomerID: 1,
@@ -185,7 +185,7 @@ func TestGetOrderByID_ZeroOrNegativeID(t *testing.T) {
 
 func TestGetOrderByID_NotFound(t *testing.T) {
 	mock := &OrderMock{
-		GetOrderByIDFunc: func(id int) (models.Order, error) {
+		GetOrderByIDFunc: func(ctx context.Context, id int) (models.Order, error) {
 			return models.Order{}, storage.ErrNotFound
 		},
 	}
@@ -209,7 +209,7 @@ func TestGetOrderByID_NotFound(t *testing.T) {
 
 func TestGetOrderByID_Fail(t *testing.T) {
 	mock := &OrderMock{
-		GetOrderByIDFunc: func(id int) (models.Order, error) {
+		GetOrderByIDFunc: func(ctx context.Context, id int) (models.Order, error) {
 			return models.Order{}, errors.New("database connection failed")
 		},
 	}
@@ -238,7 +238,7 @@ func TestGetOrderByID_Fail(t *testing.T) {
 func TestGetOrdersByUserEmail_Success(t *testing.T) {
 	now := time.Now()
 	mock := &OrderMock{
-		GetOrdersByUserEmailFunc: func(email string) ([]models.Order, error) {
+		GetOrdersByUserEmailFunc: func(ctx context.Context, email string) ([]models.Order, error) {
 			return []models.Order{
 				{ID: 1, CustomerID: 1, TotalPrice: 50.0, CreatedAt: now},
 				{ID: 2, CustomerID: 1, TotalPrice: 100.0, CreatedAt: now},
@@ -283,7 +283,7 @@ func TestGetOrdersByUserEmail_InvalidEmail(t *testing.T) {
 
 func TestGetOrdersByUserEmail_Fail(t *testing.T) {
 	mock := &OrderMock{
-		GetOrdersByUserEmailFunc: func(email string) ([]models.Order, error) {
+		GetOrdersByUserEmailFunc: func(ctx context.Context, email string) ([]models.Order, error) {
 			return nil, errors.New("db error")
 		},
 	}

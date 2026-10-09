@@ -10,11 +10,11 @@ import (
 	"github.com/jackc/pgx/v5/pgconn"
 )
 
-func (s *Storage) CreateOrder(order models.Order) (int, error) {
+func (s *Storage) CreateOrder(ctx context.Context, order models.Order) (int, error) {
 	const fn = "storage.postgres.order.CreateOrder"
 
 	var id int
-	err := s.db.QueryRow(context.Background(),
+	err := s.db.QueryRow(ctx,
 		`INSERT INTO orders (user_id, total_price) VALUES ($1, 0) RETURNING id`,
 		order.CustomerID).Scan(&id)
 
@@ -30,10 +30,10 @@ func (s *Storage) CreateOrder(order models.Order) (int, error) {
 	return id, nil
 }
 
-func (s *Storage) GetOrderByID(id int) (models.Order, error) {
+func (s *Storage) GetOrderByID(ctx context.Context, id int) (models.Order, error) {
 	const fn = "storage.postgres.order.GetOrderByID"
 
-	row := s.db.QueryRow(context.Background(),
+	row := s.db.QueryRow(ctx,
 		`SELECT id, user_id, total_price, created_at FROM orders WHERE id = $1`, id)
 
 	var order models.Order
@@ -46,10 +46,10 @@ func (s *Storage) GetOrderByID(id int) (models.Order, error) {
 	return order, nil
 }
 
-func (s *Storage) GetOrdersByUserEmail(email string) ([]models.Order, error) {
+func (s *Storage) GetOrdersByUserEmail(ctx context.Context, email string) ([]models.Order, error) {
 	const fn = "storage.postgres.order.GetOrdersByUserEmail"
 
-	rows, err := s.db.Query(context.Background(),
+	rows, err := s.db.Query(ctx,
 		`SELECT o.id, o.user_id, o.total_price, o.created_at
 		 FROM orders o
 		 JOIN users u ON o.user_id = u.id

@@ -1,6 +1,7 @@
 package checkout
 
 import (
+	"context"
 	"errors"
 	"log/slog"
 	"net/http"
@@ -18,7 +19,7 @@ import (
 
 func TestPlaceOrder_Success(t *testing.T) {
 	mock := &CheckoutMock{
-		PlaceOrderFunc: func(userEmail string, items []models.OrderItem) (int, error) {
+		PlaceOrderFunc: func(ctx context.Context, userEmail string, items []models.OrderItem) (int, error) {
 			return 1, nil
 		},
 	}
@@ -167,7 +168,7 @@ func TestPlaceOrder_InvalidQuantity(t *testing.T) {
 
 func TestPlaceOrder_NotFound(t *testing.T) {
 	mock := &CheckoutMock{
-		PlaceOrderFunc: func(userEmail string, items []models.OrderItem) (int, error) {
+		PlaceOrderFunc: func(ctx context.Context, userEmail string, items []models.OrderItem) (int, error) {
 			return 0, storage.ErrNotFound
 		},
 	}
@@ -195,7 +196,7 @@ func TestPlaceOrder_NotFound(t *testing.T) {
 
 func TestPlaceOrder_InsufficientStock(t *testing.T) {
 	mock := &CheckoutMock{
-		PlaceOrderFunc: func(userEmail string, items []models.OrderItem) (int, error) {
+		PlaceOrderFunc: func(ctx context.Context, userEmail string, items []models.OrderItem) (int, error) {
 			return 0, storage.ErrInsufficientStock
 		},
 	}
@@ -223,7 +224,7 @@ func TestPlaceOrder_InsufficientStock(t *testing.T) {
 
 func TestPlaceOrder_Fail(t *testing.T) {
 	mock := &CheckoutMock{
-		PlaceOrderFunc: func(userEmail string, items []models.OrderItem) (int, error) {
+		PlaceOrderFunc: func(ctx context.Context, userEmail string, items []models.OrderItem) (int, error) {
 			return 0, errors.New("db error")
 		},
 	}
