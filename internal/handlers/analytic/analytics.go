@@ -1,6 +1,7 @@
 package analytic
 
 import (
+	"context"
 	"log/slog"
 	"net/http"
 	"net/mail"
@@ -12,8 +13,8 @@ import (
 )
 
 type Analytics interface {
-	GetUserOrderHistory(email string) ([]models.OrderDetail, error)
-	GetPopularProducts() ([]models.PopularProduct, error)
+	GetUserOrderHistory(ctx context.Context, email string) ([]models.OrderDetail, error)
+	GetPopularProducts(ctx context.Context) ([]models.PopularProduct, error)
 }
 
 type Handler struct {
@@ -57,7 +58,7 @@ func (h *Handler) GetUserOrderHistory(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	history, err := h.storage.GetUserOrderHistory(email)
+	history, err := h.storage.GetUserOrderHistory(r.Context(), email)
 	if err != nil {
 		log.Error("failed to get user order history",
 			slog.String("email", email),
@@ -94,7 +95,7 @@ func (h *Handler) GetPopularProducts(w http.ResponseWriter, r *http.Request) {
 
 	log.Info("getting popular products", slog.String("url", r.URL.String()))
 
-	products, err := h.storage.GetPopularProducts()
+	products, err := h.storage.GetPopularProducts(r.Context())
 	if err != nil {
 		log.Error("failed to get popular products",
 			slog.Any("error", err),

@@ -7,11 +7,11 @@ import (
 	"PETShoP/internal/models"
 )
 
-func (s *Storage) GetUserOrderHistory(email string) ([]models.OrderDetail, error) {
+func (s *Storage) GetUserOrderHistory(ctx context.Context, email string) ([]models.OrderDetail, error) {
 	const fn = "storage.postgres.GetUserOrderHistory"
 
 	rows, err := s.db.Query(
-		context.Background(),
+		ctx,
 		`
 		SELECT
 			o.id,
@@ -63,18 +63,20 @@ func (s *Storage) GetUserOrderHistory(email string) ([]models.OrderDetail, error
 	return history, nil
 }
 
-func (s *Storage) GetPopularProducts() ([]models.PopularProduct, error) {
+func (s *Storage) GetPopularProducts(ctx context.Context) ([]models.PopularProduct, error) {
 	const fn = "storage.postgres.GetPopularProducts"
 
 	rows, err := s.db.Query(
-		context.Background(),
+		ctx,
 		`
 		SELECT
 			p.id,
 			p.name,
-			COALESCE(SUM(oi.quantity), 0) AS total_sold
+			SUM(oi.quantity) AS total_sold
 		FROM products p
-		LEFT JOIN order_items oi ON oi.product_id = p.id
+		JOIN order_items oi ON oi.product_id = p.id
+		JOIN transactions t ON t.order_id = oi.order_id
+		WHERE t.status = 'completed'
 		GROUP BY p.id, p.name
 		ORDER BY total_sold DESC, p.id
 		`,

@@ -1,6 +1,7 @@
 package analytic
 
 import (
+	"context"
 	"errors"
 	"log/slog"
 	"net/http"
@@ -13,7 +14,7 @@ import (
 
 func TestGetUserOrderHistory_Success(t *testing.T) {
 	mock := &AnalyticsMock{
-		GetUserOrderHistoryFunc: func(email string) ([]models.OrderDetail, error) {
+		GetUserOrderHistoryFunc: func(ctx context.Context, email string) ([]models.OrderDetail, error) {
 			return []models.OrderDetail{
 				{
 					OrderID:           1,
@@ -80,7 +81,7 @@ func TestGetUserOrderHistory_InvalidEmail(t *testing.T) {
 
 func TestGetUserOrderHistory_Fail(t *testing.T) {
 	mock := &AnalyticsMock{
-		GetUserOrderHistoryFunc: func(email string) ([]models.OrderDetail, error) {
+		GetUserOrderHistoryFunc: func(ctx context.Context, email string) ([]models.OrderDetail, error) {
 			return nil, errors.New("db error")
 		},
 	}
@@ -103,7 +104,7 @@ func TestGetUserOrderHistory_Fail(t *testing.T) {
 
 func TestGetPopularProducts_Success(t *testing.T) {
 	mock := &AnalyticsMock{
-		GetPopularProductsFunc: func() ([]models.PopularProduct, error) {
+		GetPopularProductsFunc: func(ctx context.Context) ([]models.PopularProduct, error) {
 			return []models.PopularProduct{
 				{
 					ProductID: 1,
@@ -132,7 +133,7 @@ func TestGetPopularProducts_Success(t *testing.T) {
 
 func TestGetPopularProducts_Fail(t *testing.T) {
 	mock := &AnalyticsMock{
-		GetPopularProductsFunc: func() ([]models.PopularProduct, error) {
+		GetPopularProductsFunc: func(ctx context.Context) ([]models.PopularProduct, error) {
 			return nil, errors.New("db error")
 		},
 	}
