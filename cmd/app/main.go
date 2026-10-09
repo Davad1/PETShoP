@@ -62,6 +62,7 @@ func main() {
 	router.Get("/orders/{id}", orderHandler.GetOrderByID)
 	router.Get("/users/orders", orderHandler.GetOrdersByUserEmail)
 	router.Get("/users/{email}", userHandler.GetUserByEmail)
+	router.Get("/users", userHandler.GetAllUsers)
 	router.Get("/orders/{id}/items", orderItemHandler.GetOrderItemsByOrderID)
 	router.Delete("/products/{id}", productHandler.DeleteProduct)
 	router.Put("/products/{id}", productHandler.UpdateProduct)

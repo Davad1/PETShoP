@@ -20,7 +20,7 @@ import (
 
 func TestAddOrderItem_Success(t *testing.T) {
 	mock := &OrderMock{
-		AddOrderItemFunc: func(orderItem models.OrderItem) error {
+		AddOrderItemFunc: func(ctx context.Context, orderItem models.OrderItem) error {
 			return nil
 		},
 	}
@@ -61,7 +61,7 @@ func TestAddOrderItem_BadRequest(t *testing.T) {
 
 func TestAddOrderItem_Fail(t *testing.T) {
 	mock := &OrderMock{
-		AddOrderItemFunc: func(orderItem models.OrderItem) error {
+		AddOrderItemFunc: func(ctx context.Context, orderItem models.OrderItem) error {
 			return errors.New("db error")
 		},
 	}
@@ -94,7 +94,7 @@ func TestAddOrderItem_Fail(t *testing.T) {
 
 func TestGetOrderItemsByOrderID_Success(t *testing.T) {
 	mock := &OrderMock{
-		GetOrderItemsByOrderIDFunc: func(orderID int) ([]models.OrderItem, error) {
+		GetOrderItemsByOrderIDFunc: func(ctx context.Context, orderID int) ([]models.OrderItem, error) {
 			return []models.OrderItem{
 				{ID: 1, OrderID: orderID, ProductID: 1, Quantity: 2},
 				{ID: 2, OrderID: orderID, ProductID: 2, Quantity: 1},
@@ -139,7 +139,7 @@ func TestGetOrderItemsByOrderID_BadRequest(t *testing.T) {
 
 func TestGetOrderItemsByOrderID_Fail(t *testing.T) {
 	mock := &OrderMock{
-		GetOrderItemsByOrderIDFunc: func(orderID int) ([]models.OrderItem, error) {
+		GetOrderItemsByOrderIDFunc: func(ctx context.Context, orderID int) ([]models.OrderItem, error) {
 			return nil, errors.New("db error")
 		},
 	}

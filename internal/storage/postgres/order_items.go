@@ -7,18 +7,18 @@ import (
 	"fmt"
 )
 
-func (s *Storage) AddOrderItem(orderItem models.OrderItem) error {
+func (s *Storage) AddOrderItem(ctx context.Context, orderItem models.OrderItem) error {
 	const fn = "storage.postgres.AddOrderItem"
 
-	if _, err := s.GetOrderByID(orderItem.OrderID); err != nil {
+	if _, err := s.GetOrderByID(ctx, orderItem.OrderID); err != nil {
 		return err
 	}
 
-	if _, err := s.GetProductByID(context.Background(), orderItem.ProductID); err != nil {
+	if _, err := s.GetProductByID(ctx, orderItem.ProductID); err != nil {
 		return err
 	}
 
-	_, err := s.db.Exec(context.Background(),
+	_, err := s.db.Exec(ctx,
 		`INSERT INTO order_items (order_id, product_id, quantity) VALUES ($1, $2, $3)`,
 		orderItem.OrderID, orderItem.ProductID, orderItem.Quantity)
 
@@ -26,13 +26,13 @@ func (s *Storage) AddOrderItem(orderItem models.OrderItem) error {
 		return fmt.Errorf("%s: %w", fn, err)
 	}
 
-	return s.UpdateOrderTotalPrice(orderItem.OrderID)
+	return s.UpdateOrderTotalPrice(ctx, orderItem.OrderID)
 }
 
-func (s *Storage) GetOrderItemsByOrderID(orderID int) ([]models.OrderItem, error) {
+func (s *Storage) GetOrderItemsByOrderID(ctx context.Context, orderID int) ([]models.OrderItem, error) {
 	const fn = "storage.postgres.GetOrderItemsByOrderID"
 
-	rows, err := s.db.Query(context.Background(),
+	rows, err := s.db.Query(ctx,
 		`SELECT id, order_id, product_id, quantity FROM order_items WHERE order_id = $1`, orderID)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", fn, err)
@@ -55,10 +55,10 @@ func (s *Storage) GetOrderItemsByOrderID(orderID int) ([]models.OrderItem, error
 	return orderItems, nil
 }
 
-func (s *Storage) UpdateOrderTotalPrice(orderID int) error {
+func (s *Storage) UpdateOrderTotalPrice(ctx context.Context, orderID int) error {
 	const fn = "storage.postgres.UpdateOrderTotalPrice"
 
-	result, err := s.db.Exec(context.Background(),
+	result, err := s.db.Exec(ctx,
 		`UPDATE orders
 		 SET total_price = (
 		     SELECT COALESCE(SUM(p.price * oi.quantity), 0)

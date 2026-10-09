@@ -3,6 +3,7 @@ package order
 import (
 	"PETShoP/internal/models"
 	"PETShoP/internal/storage"
+	"context"
 	"errors"
 	"log/slog"
 	"net/http"
@@ -15,9 +16,9 @@ import (
 )
 
 type Orders interface {
-	CreateOrder(order models.Order) (int, error)
-	GetOrderByID(id int) (models.Order, error)
-	GetOrdersByUserEmail(email string) ([]models.Order, error)
+	CreateOrder(ctx context.Context, order models.Order) (int, error)
+	GetOrderByID(ctx context.Context, id int) (models.Order, error)
+	GetOrdersByUserEmail(ctx context.Context, email string) ([]models.Order, error)
 }
 
 type Handler struct {
@@ -65,7 +66,7 @@ func (h *Handler) CreateOrder(w http.ResponseWriter, r *http.Request) {
 
 	order.TotalPrice = 0
 
-	orderID, err := h.storage.CreateOrder(order)
+	orderID, err := h.storage.CreateOrder(r.Context(), order)
 	if err != nil {
 		if errors.Is(err, storage.ErrNotFound) {
 			log.Error("customer not found",
@@ -146,7 +147,7 @@ func (h *Handler) GetOrderByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	order, err := h.storage.GetOrderByID(id)
+	order, err := h.storage.GetOrderByID(r.Context(), id)
 	if err != nil {
 		if errors.Is(err, storage.ErrNotFound) {
 			render.Status(r, http.StatusNotFound)
@@ -207,7 +208,7 @@ func (h *Handler) GetOrdersByUserEmail(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	orders, err := h.storage.GetOrdersByUserEmail(email)
+	orders, err := h.storage.GetOrdersByUserEmail(r.Context(), email)
 	if err != nil {
 		log.Error("failed to get orders by user email", slog.Any("error", err))
 		w.WriteHeader(http.StatusInternalServerError)

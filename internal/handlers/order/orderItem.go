@@ -3,6 +3,7 @@ package order
 import (
 	"PETShoP/internal/models"
 	"PETShoP/internal/storage"
+	"context"
 	"errors"
 	"log/slog"
 	"net/http"
@@ -14,8 +15,8 @@ import (
 )
 
 type OrdersItem interface {
-	AddOrderItem(orderItem models.OrderItem) error
-	GetOrderItemsByOrderID(orderID int) ([]models.OrderItem, error)
+	AddOrderItem(ctx context.Context, orderItem models.OrderItem) error
+	GetOrderItemsByOrderID(ctx context.Context, orderID int) ([]models.OrderItem, error)
 }
 
 type HandlerItem struct {
@@ -87,7 +88,7 @@ func (h *HandlerItem) AddOrderItem(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.storage.AddOrderItem(orderItem); err != nil {
+	if err := h.storage.AddOrderItem(r.Context(), orderItem); err != nil {
 		if errors.Is(err, storage.ErrNotFound) {
 			render.Status(r, http.StatusNotFound)
 			render.JSON(w, r, map[string]string{
@@ -149,7 +150,7 @@ func (h *HandlerItem) GetOrderItemsByOrderID(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	orderItems, err := h.storage.GetOrderItemsByOrderID(orderID)
+	orderItems, err := h.storage.GetOrderItemsByOrderID(r.Context(), orderID)
 	if err != nil {
 		log.Error("failed to get order items", slog.Any("error", err))
 		render.Status(r, http.StatusInternalServerError)
